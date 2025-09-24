@@ -1,6 +1,0 @@
-# Deny all access to data directory
-Require all denied
-
-# Alternative for older Apache versions
-Order deny,allow
-Deny from all

@@ -3,996 +3,801 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WO2 bunker map | Historische Kring Nederhorst den Berg</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <title>Nederhorst Bunker Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
         }
-        
-        .auth-overlay {
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
+            right: 0;
+            z-index: 1000;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            z-index: 2000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        
-        .auth-modal {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            max-width: 400px;
-            width: 90%;
-        }
-        
-        .auth-modal h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-        }
-        
-        .auth-modal input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 16px;
-            margin: 10px 0;
-            text-align: center;
-        }
-        
-        .auth-modal input:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-        
-        .auth-error {
-            color: #e74c3c;
-            margin: 10px 0;
-            font-size: 14px;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #2c3e50, #3498db);
-            color: white;
-            padding: 15px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
+
         .header h1 {
-            font-size: 1.8rem;
-            font-weight: 300;
+            font-size: 1.5rem;
+            font-weight: 600;
         }
-        
-        .header p {
-            opacity: 0.9;
-            margin-top: 5px;
-            font-size: 0.9rem;
-        }
-        
-        .controls {
-            background: white;
-            padding: 15px 20px;
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .control-group label {
-            font-weight: 500;
-            color: #555;
-        }
-        
-        .btn {
+
+        .sign-in-btn {
             background: #3498db;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 0.75rem 1.5rem;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        
-        .btn:hover {
-            background: #2980b9;
-            transform: translateY(-1px);
-        }
-        
-        .btn.active {
-            background: #e74c3c;
-        }
-        
-        .btn.clear {
-            background: #95a5a6;
-        }
-        
-        .btn.clear:hover {
-            background: #7f8c8d;
-        }
-        
-        .btn.logout {
-            background: #e67e22;
-        }
-        
-        .btn.logout:hover {
-            background: #d35400;
-        }
-        
-        .map-container {
-            height: calc(100vh - 140px);
-            position: relative;
-        }
-        
-        #map {
-            height: 100%;
-            width: 100%;
-        }
-        
-        .marker-popup {
-            max-width: 350px;
-        }
-        
-        .popup-header {
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-        }
-        
-        .photo-gallery {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin: 10px 0;
-        }
-        
-        .photo-gallery img {
-            width: 100%;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 2px solid #e0e0e0;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        
-        .photo-gallery img:hover {
-            border-color: #3498db;
-            transform: scale(1.02);
-        }
-        
-        .popup-info {
-            margin-top: 10px;
             font-size: 0.9rem;
-            color: #666;
+            font-weight: 500;
+            transition: background-color 0.2s;
         }
-        
-        .status {
+
+        .sign-in-btn:hover {
+            background: #2980b9;
+        }
+
+        .sign-in-btn.authenticated {
+            background: #27ae60;
+        }
+
+        .sign-in-btn.authenticated:hover {
+            background: #229954;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100%;
+            padding-top: 80px;
+        }
+
+        /* Position Leaflet controls below header */
+        .leaflet-top {
+            top: 90px;
+        }
+
+        .leaflet-left {
+            left: 10px;
+        }
+
+        .modal {
+            display: none;
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #2ecc71;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 6px;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .status.show {
-            opacity: 1;
-        }
-        
-        .marker-count {
-            background: #34495e;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-        }
-        
-        .photo-upload-modal {
-            position: fixed;
-            top: 0;
+            z-index: 2000;
             left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1500;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
         }
-        
-        .upload-modal-content {
+
+        .modal-content {
             background: white;
-            padding: 30px;
+            margin: 10% auto;
+            padding: 2rem;
             border-radius: 12px;
-            max-width: 500px;
             width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-        
-        .upload-modal-content h3 {
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal h2 {
+            margin-bottom: 1.5rem;
             color: #2c3e50;
-            margin-bottom: 20px;
-            text-align: center;
+            font-size: 1.5rem;
         }
-        
-        .photo-upload-area {
-            border: 2px dashed #bdc3c7;
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .photo-upload {
+            border: 2px dashed #ddd;
             border-radius: 8px;
-            padding: 20px;
+            padding: 2rem;
             text-align: center;
-            margin: 15px 0;
+            margin: 1rem 0;
             cursor: pointer;
             transition: all 0.2s;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
         }
-        
-        .photo-upload-area:hover {
+
+        .photo-upload:hover {
             border-color: #3498db;
             background: #f8f9fa;
         }
-        
-        .photo-upload-area.dragover {
-            border-color: #2ecc71;
-            background: #d5f4e6;
+
+        .photo-upload.drag-over {
+            border-color: #3498db;
+            background: #e3f2fd;
         }
-        
+
         .photo-preview {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin: 15px 0;
+            gap: 1rem;
+            margin-top: 1rem;
         }
-        
-        .photo-preview-item {
+
+        .photo-item {
             position: relative;
             border-radius: 8px;
             overflow: hidden;
+            aspect-ratio: 4/3;
         }
-        
-        .photo-preview img {
+
+        .photo-item img {
             width: 100%;
-            height: 120px;
+            height: 100%;
             object-fit: cover;
         }
-        
+
         .photo-remove {
             position: absolute;
             top: 5px;
             right: 5px;
-            background: #e74c3c;
+            background: rgba(231, 76, 60, 0.9);
             color: white;
             border: none;
             border-radius: 50%;
-            width: 25px;
-            height: 25px;
+            width: 24px;
+            height: 24px;
             cursor: pointer;
-            font-size: 12px;
-        }
-        
-        .modal-actions {
+            font-size: 14px;
             display: flex;
-            gap: 10px;
+            align-items: center;
             justify-content: center;
-            margin-top: 20px;
         }
-        
-        .photo-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
+
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .marker-popup {
+            max-width: 350px;
+        }
+
+        .marker-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .marker-photos {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .marker-photo {
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+            aspect-ratio: 4/3;
+        }
+
+        .marker-photo:hover {
+            transform: scale(1.05);
+        }
+
+        .marker-photo img {
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            cursor: pointer;
+            object-fit: cover;
         }
 
-        .photo-overlay-content {
+        .fullscreen-overlay {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(8px);
+        }
+
+        .fullscreen-photo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             max-width: 90vw;
             max-height: 90vh;
-            position: relative;
-            cursor: default;
-        }
-
-        .photo-overlay img {
-            max-width: 100%;
-            max-height: 90vh;
-            object-fit: contain;
             border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         }
 
-        .photo-overlay-close {
+        .fullscreen-close {
             position: absolute;
-            top: -40px;
-            right: 0;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 36px;
             cursor: pointer;
-            font-size: 20px;
-            font-weight: bold;
+            background: rgba(0,0,0,0.5);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
         }
 
-        .photo-overlay-close:hover {
-            background: white;
-            transform: scale(1.1);
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
         }
 
-        .photo-overlay-info {
-            position: absolute;
-            bottom: -50px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            color: white;
-            font-size: 14px;
-            opacity: 0.8;
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
 
-        .hidden {
-            display: none !important;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        
+
         @media (max-width: 768px) {
+            .modal-content {
+                margin: 5% auto;
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .photo-preview {
+                grid-template-columns: 1fr;
+            }
+
+            .marker-photos {
+                grid-template-columns: 1fr;
+            }
+
             .header h1 {
-                font-size: 1.4rem;
+                font-size: 1.2rem;
             }
-            
-            .controls {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            
-            .map-container {
-                height: calc(100vh - 180px);
-            }
-            
-            .upload-modal-content {
-                margin: 20px;
-                width: calc(100% - 40px);
+
+            .sign-in-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
             }
         }
     </style>
 </head>
 <body>
+    <header class="header">
+        <h1>Nederhorst Bunker Map</h1>
+        <button id="signInBtn" class="sign-in-btn">Sign In</button>
+    </header>
+
+    <div id="map"></div>
+
     <!-- Authentication Modal -->
-    <div id="authOverlay" class="auth-overlay hidden">
-        <div class="auth-modal">
-            <h2>🔐 Authentication Required</h2>
-            <p>Enter your PIN to add markers to the map:</p>
-            <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="6">
-            <div id="authError" class="auth-error hidden">Incorrect PIN. Try again.</div>
-            <button id="loginBtn" class="btn">Login</button>
-            <button id="cancelLoginBtn" class="btn clear">Cancel</button>
-        </div>
-    </div>
-    
-    <!-- Photo Overlay Modal -->
-    <div id="photoOverlay" class="photo-overlay hidden">
-        <div class="photo-overlay-content">
-            <button class="photo-overlay-close" id="photoOverlayClose">×</button>
-            <img id="photoOverlayImg" src="" alt="Full size photo">
-            <div class="photo-overlay-info" id="photoOverlayInfo"></div>
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="authClose">&times;</span>
+            <h2>Enter Access Code</h2>
+            <div class="form-group">
+                <label for="pincode">Access Code:</label>
+                <input type="password" id="pincode" placeholder="Enter your access code">
+                <div id="authError" class="error-message"></div>
+            </div>
+            <button id="authSubmit" class="btn">Sign In</button>
         </div>
     </div>
 
-    <!-- Photo Upload Modal -->
-    <div id="photoUploadModal" class="photo-upload-modal hidden">
-        <div class="upload-modal-content">
-            <h3>📸 Add Photos to Marker</h3>
-            <p>Upload up to 2 photos for this location:</p>
-            
-            <div class="photo-upload-area" id="photoUploadArea">
-                <p>📁 Drag & drop photos here or click to select</p>
-                <p><small>Supports: JPG, PNG, GIF (max 5MB each)</small></p>
-            </div>
-            
-            <input type="file" id="photoInput" accept="image/*" multiple style="display: none;">
-            
-            <div id="photoPreview" class="photo-preview"></div>
-            
-            <div class="modal-actions">
-                <button id="savePhotos" class="btn">💾 Save Marker</button>
-                <button id="cancelUpload" class="btn clear">❌ Cancel</button>
-            </div>
+    <!-- Add Marker Modal -->
+    <div id="markerModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="markerClose">&times;</span>
+            <h2>Add New Marker</h2>
+            <form id="markerForm">
+                <div class="form-group">
+                    <label for="markerTitle">Marker Title:</label>
+                    <input type="text" id="markerTitle" required placeholder="Enter marker title">
+                </div>
+
+                <div class="form-group">
+                    <label>Photos (2 required):</label>
+                    <div class="photo-upload" id="photoUpload">
+                        <div>
+                            <strong>Drop photos here or click to browse</strong>
+                            <p>Upload 2 photos (max 5MB each)</p>
+                        </div>
+                        <input type="file" id="photoInput" accept="image/*" multiple style="display: none;">
+                    </div>
+                    <div id="photoPreview" class="photo-preview"></div>
+                    <div id="photoError" class="error-message"></div>
+                </div>
+
+                <button type="submit" class="btn" id="submitMarker">
+                    <span id="submitText">Add Marker</span>
+                    <span id="submitLoading" class="loading" style="display: none;"></span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="cancelMarker">Cancel</button>
+            </form>
         </div>
     </div>
-    
-    <div class="header">
-        <h1>Weesp Area Interactive Map</h1>
-        <p>View existing markers or login to add new photo markers</p>
+
+    <!-- Fullscreen Photo Overlay -->
+    <div id="fullscreenOverlay" class="fullscreen-overlay">
+        <span class="fullscreen-close" id="fullscreenClose">&times;</span>
+        <img id="fullscreenPhoto" class="fullscreen-photo" src="" alt="">
     </div>
-    
-    <div class="controls">
-        <div class="control-group">
-            <button id="loginToAddBtn" class="btn">🔐 Login to Add Markers</button>
-        </div>
-        <div class="control-group auth-only hidden">
-            <button id="toggleMode" class="btn">🎯 Add Marker Mode: OFF</button>
-        </div>
-        <div class="control-group auth-only hidden">
-            <button id="clearMarkers" class="btn clear">🗑️ Clear All Markers</button>
-        </div>
-        <div class="control-group auth-only hidden">
-            <button id="logoutBtn" class="btn logout">🚪 Logout</button>
-        </div>
-        <div class="control-group">
-            <span class="marker-count">Markers: <span id="markerCount">0</span></span>
-        </div>
-    </div>
-    
-    <div class="map-container">
-        <div id="map"></div>
-    </div>
-    
-    <div id="status" class="status"></div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        class WeespMapApp {
+        class BunkerMapApp {
             constructor() {
-                // Weesp coordinates
-                this.centerLat = 52.3086;
-                this.centerLng = 5.0408;
-                this.markers = [];
-                this.addMarkerMode = false;
-                this.markerCounter = 0;
-                this.authenticated = false;
-                this.correctPin = "1234"; // Change this to your desired PIN
+                this.map = null;
+                this.isAuthenticated = false;
+                this.selectedPhotos = [];
                 this.pendingMarkerLocation = null;
-                this.tempPhotos = [];
-                
+                this.markers = [];
+
                 this.init();
             }
-            
+
             init() {
-                this.initAuth();
-                this.initMap();
-                this.bindEvents();
-                this.loadFromLocalStorage();
-                this.updateMarkerCount();
+                this.initializeMap();
+                this.setupEventListeners();
+                this.loadMarkers();
+                this.checkAuthStatus();
             }
-            
-            initAuth() {
-                const authOverlay = document.getElementById('authOverlay');
-                const pinInput = document.getElementById('pinInput');
-                const loginBtn = document.getElementById('loginBtn');
-                const cancelLoginBtn = document.getElementById('cancelLoginBtn');
-                const authError = document.getElementById('authError');
 
-                const attemptLogin = () => {
-                    const enteredPin = pinInput.value;
-                    if (enteredPin === this.correctPin) {
-                        this.authenticated = true;
-                        authOverlay.classList.add('hidden');
-                        this.updateAuthUI();
-                        this.showStatus('✅ Authentication successful!');
-                    } else {
-                        authError.classList.remove('hidden');
-                        pinInput.value = '';
-                        pinInput.focus();
-                        setTimeout(() => authError.classList.add('hidden'), 3000);
-                    }
-                };
+            initializeMap() {
+                // Nederhorst den Berg coordinates
+                const nederhorst = [52.2619, 5.0314];
 
-                const cancelLogin = () => {
-                    authOverlay.classList.add('hidden');
-                    pinInput.value = '';
-                    authError.classList.add('hidden');
-                };
+                this.map = L.map('map').setView(nederhorst, 14);
 
-                loginBtn.addEventListener('click', attemptLogin);
-                cancelLoginBtn.addEventListener('click', cancelLogin);
-                pinInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') attemptLogin();
-                });
-
-                this.updateAuthUI();
-            }
-            
-            initMap() {
-                // Initialize map centered on Weesp
-                this.map = L.map('map').setView([this.centerLat, this.centerLng], 13);
-                
-                // Add OpenStreetMap tiles
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '© OpenStreetMap contributors',
                     maxZoom: 19
                 }).addTo(this.map);
-                
-                // Add a marker for Weesp center
-                const weespMarker = L.marker([this.centerLat, this.centerLng])
-                    .addTo(this.map)
-                    .bindPopup(`
-                        <div class="marker-popup">
-                            <div class="popup-header">📍 Weesp Center</div>
-                            <div class="popup-info">Historic town center of Weesp</div>
-                        </div>
-                    `);
-                
-                // Bind map click event
-                this.map.on('click', (e) => this.onMapClick(e));
+
+                // Add click event for authenticated users
+                this.map.on('click', (e) => {
+                    if (this.isAuthenticated) {
+                        this.showAddMarkerModal(e.latlng);
+                    }
+                });
             }
-            
-            bindEvents() {
-                document.getElementById('loginToAddBtn').addEventListener('click', () => this.showLoginModal());
-                document.getElementById('toggleMode').addEventListener('click', () => this.toggleAddMode());
-                document.getElementById('clearMarkers').addEventListener('click', () => this.clearAllMarkers());
-                document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
-                
-                // Photo upload modal events
-                document.getElementById('photoUploadArea').addEventListener('click', () => {
-                    document.getElementById('photoInput').click();
+
+            setupEventListeners() {
+                // Authentication modal
+                document.getElementById('signInBtn').addEventListener('click', () => {
+                    if (this.isAuthenticated) {
+                        this.signOut();
+                    } else {
+                        document.getElementById('authModal').style.display = 'block';
+                    }
                 });
-                
-                document.getElementById('photoInput').addEventListener('change', (e) => {
-                    this.handlePhotoSelection(e.target.files);
+
+                document.getElementById('authClose').addEventListener('click', () => {
+                    document.getElementById('authModal').style.display = 'none';
                 });
-                
-                document.getElementById('savePhotos').addEventListener('click', () => this.saveMarkerWithPhotos());
-                document.getElementById('cancelUpload').addEventListener('click', () => this.cancelPhotoUpload());
-                
+
+                document.getElementById('authSubmit').addEventListener('click', () => {
+                    this.authenticate();
+                });
+
+                document.getElementById('pincode').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.authenticate();
+                    }
+                });
+
+                // Marker modal
+                document.getElementById('markerClose').addEventListener('click', () => {
+                    this.closeMarkerModal();
+                });
+
+                document.getElementById('cancelMarker').addEventListener('click', () => {
+                    this.closeMarkerModal();
+                });
+
+                document.getElementById('markerForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.submitMarker();
+                });
+
+                // Photo upload
+                const photoUpload = document.getElementById('photoUpload');
+                const photoInput = document.getElementById('photoInput');
+
+                photoUpload.addEventListener('click', () => photoInput.click());
+                photoInput.addEventListener('change', (e) => this.handlePhotoSelection(e.target.files));
+
                 // Drag and drop
-                const uploadArea = document.getElementById('photoUploadArea');
-                uploadArea.addEventListener('dragover', (e) => {
+                photoUpload.addEventListener('dragover', (e) => {
                     e.preventDefault();
-                    uploadArea.classList.add('dragover');
+                    photoUpload.classList.add('drag-over');
                 });
-                
-                uploadArea.addEventListener('dragleave', () => {
-                    uploadArea.classList.remove('dragover');
+
+                photoUpload.addEventListener('dragleave', () => {
+                    photoUpload.classList.remove('drag-over');
                 });
-                
-                uploadArea.addEventListener('drop', (e) => {
+
+                photoUpload.addEventListener('drop', (e) => {
                     e.preventDefault();
-                    uploadArea.classList.remove('dragover');
+                    photoUpload.classList.remove('drag-over');
                     this.handlePhotoSelection(e.dataTransfer.files);
                 });
 
-                // Photo overlay events
-                document.getElementById('photoOverlay').addEventListener('click', (e) => {
-                    if (e.target.id === 'photoOverlay') {
-                        this.hidePhotoOverlay();
+                // Fullscreen photo
+                document.getElementById('fullscreenClose').addEventListener('click', () => {
+                    document.getElementById('fullscreenOverlay').style.display = 'none';
+                });
+
+                document.getElementById('fullscreenOverlay').addEventListener('click', (e) => {
+                    if (e.target === document.getElementById('fullscreenOverlay')) {
+                        document.getElementById('fullscreenOverlay').style.display = 'none';
                     }
                 });
 
-                document.getElementById('photoOverlayClose').addEventListener('click', () => {
-                    this.hidePhotoOverlay();
-                });
-
-                document.querySelector('.photo-overlay-content').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                });
-
-                // Keyboard support for photo overlay
+                // Close modals on escape
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
-                        const overlay = document.getElementById('photoOverlay');
-                        if (!overlay.classList.contains('hidden')) {
-                            this.hidePhotoOverlay();
-                        }
+                        document.getElementById('authModal').style.display = 'none';
+                        document.getElementById('markerModal').style.display = 'none';
+                        document.getElementById('fullscreenOverlay').style.display = 'none';
                     }
                 });
             }
 
-            showLoginModal() {
-                const authOverlay = document.getElementById('authOverlay');
-                const pinInput = document.getElementById('pinInput');
-                authOverlay.classList.remove('hidden');
-                pinInput.focus();
+            checkAuthStatus() {
+                // Check if user is already authenticated
+                if (sessionStorage.getItem('authenticated') === 'true') {
+                    this.setAuthenticatedState(true);
+                }
             }
 
-            updateAuthUI() {
-                const authOnlyElements = document.querySelectorAll('.auth-only');
-                const loginToAddBtn = document.getElementById('loginToAddBtn');
+            async authenticate() {
+                const pincode = document.getElementById('pincode').value;
+                const errorDiv = document.getElementById('authError');
 
-                if (this.authenticated) {
-                    authOnlyElements.forEach(el => el.classList.remove('hidden'));
-                    loginToAddBtn.classList.add('hidden');
+                if (!pincode) {
+                    errorDiv.textContent = 'Please enter an access code';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('api/auth.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ pincode })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.setAuthenticatedState(true);
+                        sessionStorage.setItem('authenticated', 'true');
+                        document.getElementById('authModal').style.display = 'none';
+                        document.getElementById('pincode').value = '';
+                        errorDiv.textContent = '';
+                    } else {
+                        errorDiv.textContent = result.message || 'Invalid access code';
+                    }
+                } catch (error) {
+                    errorDiv.textContent = 'Connection error. Please try again.';
+                    console.error('Auth error:', error);
+                }
+            }
+
+            signOut() {
+                this.setAuthenticatedState(false);
+                sessionStorage.removeItem('authenticated');
+            }
+
+            setAuthenticatedState(authenticated) {
+                this.isAuthenticated = authenticated;
+                const signInBtn = document.getElementById('signInBtn');
+
+                if (authenticated) {
+                    signInBtn.textContent = 'Sign Out';
+                    signInBtn.classList.add('authenticated');
                 } else {
-                    authOnlyElements.forEach(el => el.classList.add('hidden'));
-                    loginToAddBtn.classList.remove('hidden');
+                    signInBtn.textContent = 'Sign In';
+                    signInBtn.classList.remove('authenticated');
                 }
             }
 
-            showPhotoOverlay(photoSrc, photoName, markerInfo) {
-                const overlay = document.getElementById('photoOverlay');
-                const img = document.getElementById('photoOverlayImg');
-                const info = document.getElementById('photoOverlayInfo');
-
-                img.src = photoSrc;
-                img.alt = photoName || 'Full size photo';
-                info.textContent = markerInfo || 'Click anywhere outside to close | Press ESC to close';
-
-                overlay.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
+            showAddMarkerModal(latlng) {
+                this.pendingMarkerLocation = latlng;
+                this.selectedPhotos = [];
+                this.updatePhotoPreview();
+                document.getElementById('markerTitle').value = '';
+                document.getElementById('photoError').textContent = '';
+                document.getElementById('markerModal').style.display = 'block';
             }
 
-            hidePhotoOverlay() {
-                const overlay = document.getElementById('photoOverlay');
-                const img = document.getElementById('photoOverlayImg');
-
-                overlay.classList.add('hidden');
-                img.src = '';
-                document.body.style.overflow = '';
+            closeMarkerModal() {
+                document.getElementById('markerModal').style.display = 'none';
+                this.pendingMarkerLocation = null;
+                this.selectedPhotos = [];
             }
 
-            onMapClick(e) {
-                if (!this.authenticated) {
-                    this.showStatus('🔐 Login required to add markers');
-                    this.showLoginModal();
-                    return;
-                }
-
-                if (!this.addMarkerMode) return;
-                
-                this.pendingMarkerLocation = { lat: e.latlng.lat, lng: e.latlng.lng };
-                this.showPhotoUploadModal();
-            }
-            
-            showPhotoUploadModal() {
-                this.tempPhotos = [];
-                document.getElementById('photoUploadModal').classList.remove('hidden');
-                document.getElementById('photoPreview').innerHTML = '';
-            }
-            
             handlePhotoSelection(files) {
-                const maxPhotos = 2;
-                const maxSize = 5 * 1024 * 1024; // 5MB
-                
-                if (this.tempPhotos.length >= maxPhotos) {
-                    this.showStatus('❌ Maximum 2 photos allowed per marker');
+                const fileArray = Array.from(files);
+                const errorDiv = document.getElementById('photoError');
+                errorDiv.textContent = '';
+
+                // Validate file count
+                if (this.selectedPhotos.length + fileArray.length > 2) {
+                    errorDiv.textContent = 'Maximum 2 photos allowed';
                     return;
                 }
-                
-                Array.from(files).slice(0, maxPhotos - this.tempPhotos.length).forEach(file => {
-                    if (file.size > maxSize) {
-                        this.showStatus(`❌ ${file.name} is too large (max 5MB)`);
-                        return;
-                    }
-                    
+
+                fileArray.forEach(file => {
+                    // Validate file type
                     if (!file.type.startsWith('image/')) {
-                        this.showStatus(`❌ ${file.name} is not a valid image`);
+                        errorDiv.textContent = 'Only image files are allowed';
                         return;
                     }
-                    
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        this.tempPhotos.push({
-                            name: file.name,
-                            data: e.target.result,
-                            size: file.size
-                        });
-                        this.updatePhotoPreview();
-                    };
-                    reader.readAsDataURL(file);
+
+                    // Validate file size (5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        errorDiv.textContent = 'File size must be less than 5MB';
+                        return;
+                    }
+
+                    if (this.selectedPhotos.length < 2) {
+                        this.selectedPhotos.push(file);
+                    }
                 });
-            }
-            
-            updatePhotoPreview() {
-                const preview = document.getElementById('photoPreview');
-                preview.innerHTML = '';
-                
-                this.tempPhotos.forEach((photo, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'photo-preview-item';
-                    div.innerHTML = `
-                        <img src="${photo.data}" alt="${photo.name}">
-                        <button class="photo-remove" onclick="app.removePhoto(${index})">×</button>
-                    `;
-                    preview.appendChild(div);
-                });
-            }
-            
-            removePhoto(index) {
-                this.tempPhotos.splice(index, 1);
+
                 this.updatePhotoPreview();
             }
-            
-            saveMarkerWithPhotos() {
-                if (this.tempPhotos.length === 0) {
-                    this.showStatus('❌ Please add at least one photo');
-                    return;
-                }
-                
-                this.addMarker(this.pendingMarkerLocation.lat, this.pendingMarkerLocation.lng, [...this.tempPhotos]);
-                this.cancelPhotoUpload();
-                this.showStatus('✅ Marker with photos added!');
-            }
-            
-            cancelPhotoUpload() {
-                document.getElementById('photoUploadModal').classList.add('hidden');
-                this.tempPhotos = [];
-                this.pendingMarkerLocation = null;
-                document.getElementById('photoInput').value = '';
-            }
-            
-            addMarker(lat, lng, photos = []) {
-                this.markerCounter++;
-                
-                // Create custom marker with a different color
-                const customIcon = L.divIcon({
-                    className: 'custom-marker',
-                    html: `<div style="
-                        background: #e74c3c;
-                        border: 3px solid white;
-                        border-radius: 50%;
-                        width: 20px;
-                        height: 20px;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-                    "></div>`,
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 10]
+
+            updatePhotoPreview() {
+                const previewDiv = document.getElementById('photoPreview');
+                previewDiv.innerHTML = '';
+
+                this.selectedPhotos.forEach((file, index) => {
+                    const photoItem = document.createElement('div');
+                    photoItem.className = 'photo-item';
+
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.alt = `Photo ${index + 1}`;
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'photo-remove';
+                    removeBtn.innerHTML = '×';
+                    removeBtn.onclick = () => this.removePhoto(index);
+
+                    photoItem.appendChild(img);
+                    photoItem.appendChild(removeBtn);
+                    previewDiv.appendChild(photoItem);
                 });
-                
-                const marker = L.marker([lat, lng], { icon: customIcon }).addTo(this.map);
-                
-                // Create popup with uploaded photos
-                let photoGalleryHtml = '';
-                if (photos.length > 0) {
-                    photoGalleryHtml = '<div class="photo-gallery">';
-                    photos.forEach((photo, index) => {
-                        photoGalleryHtml += `<img src="${photo.data}" alt="${photo.name}" onclick="app.showPhotoOverlay('${photo.data}', '${photo.name}', 'Photo from Marker ${this.markerCounter}')">`;
-                    });
-                    photoGalleryHtml += '</div>';
-                } else {
-                    photoGalleryHtml = '<div class="popup-info"><em>No photos uploaded</em></div>';
-                }
-                
-                const popupContent = `
-                    <div class="marker-popup">
-                        <div class="popup-header">📸 Photo Location ${this.markerCounter}</div>
-                        ${photoGalleryHtml}
-                        <div class="popup-info">
-                            <strong>Coordinates:</strong> ${lat.toFixed(5)}, ${lng.toFixed(5)}<br>
-                            <strong>Photos:</strong> ${photos.length}/2<br>
-                            <small>Click photos to view full size</small>
-                        </div>
-                    </div>
-                `;
-                
-                marker.bindPopup(popupContent);
-                
-                this.markers.push({
-                    marker: marker,
-                    id: this.markerCounter,
-                    lat: lat,
-                    lng: lng,
-                    photos: photos,
-                    timestamp: new Date().toISOString()
-                });
-
-                this.saveToLocalStorage();
-                this.updateMarkerCount();
             }
-            
-            toggleAddMode() {
-                if (!this.authenticated) {
-                    this.showStatus('❌ Authentication required');
+
+            removePhoto(index) {
+                this.selectedPhotos.splice(index, 1);
+                this.updatePhotoPreview();
+            }
+
+            async submitMarker() {
+                const title = document.getElementById('markerTitle').value.trim();
+                const errorDiv = document.getElementById('photoError');
+                const submitBtn = document.getElementById('submitMarker');
+                const submitText = document.getElementById('submitText');
+                const submitLoading = document.getElementById('submitLoading');
+
+                errorDiv.textContent = '';
+
+                if (!title) {
+                    errorDiv.textContent = 'Please enter a marker title';
                     return;
                 }
-                
-                this.addMarkerMode = !this.addMarkerMode;
-                const btn = document.getElementById('toggleMode');
-                
-                if (this.addMarkerMode) {
-                    btn.textContent = '🎯 Add Marker Mode: ON';
-                    btn.classList.add('active');
-                    this.map.getContainer().style.cursor = 'crosshair';
-                    this.showStatus('Click anywhere on the map to add a marker with photos 🎯');
-                } else {
-                    btn.textContent = '🎯 Add Marker Mode: OFF';
-                    btn.classList.remove('active');
-                    this.map.getContainer().style.cursor = '';
-                    this.showStatus('Marker mode disabled');
-                }
-            }
-            
-            clearAllMarkers() {
-                if (!this.authenticated) {
-                    this.showStatus('❌ Authentication required');
+
+                if (this.selectedPhotos.length !== 2) {
+                    errorDiv.textContent = 'Please upload exactly 2 photos';
                     return;
                 }
-                
-                if (this.markers.length === 0) {
-                    this.showStatus('No markers to clear');
-                    return;
-                }
-                
-                if (confirm(`Are you sure you want to remove all ${this.markers.length} markers and their photos?`)) {
-                    this.markers.forEach(markerObj => {
-                        this.map.removeLayer(markerObj.marker);
-                    });
 
-                    this.markers = [];
-                    this.markerCounter = 0;
-                    this.clearLocalStorage();
-                    this.updateMarkerCount();
-                    this.showStatus('All markers and photos cleared! 🗑️');
-                }
-            }
-            
-            logout() {
-                this.authenticated = false;
-                this.addMarkerMode = false;
-                document.getElementById('toggleMode').textContent = '🎯 Add Marker Mode: OFF';
-                document.getElementById('toggleMode').classList.remove('active');
-                this.map.getContainer().style.cursor = '';
-                this.updateAuthUI();
-                this.showStatus('Logged out successfully');
-            }
-            
-            updateMarkerCount() {
-                document.getElementById('markerCount').textContent = this.markers.length;
-            }
-            
-            showStatus(message) {
-                const status = document.getElementById('status');
-                status.textContent = message;
-                status.classList.add('show');
+                // Show loading state
+                submitBtn.disabled = true;
+                submitText.style.display = 'none';
+                submitLoading.style.display = 'inline-block';
 
-                setTimeout(() => {
-                    status.classList.remove('show');
-                }, 3000);
-            }
-
-            saveToLocalStorage() {
                 try {
-                    const markersData = this.markers.map(markerObj => ({
-                        id: markerObj.id,
-                        lat: markerObj.lat,
-                        lng: markerObj.lng,
-                        photos: markerObj.photos,
-                        timestamp: markerObj.timestamp
-                    }));
+                    const formData = new FormData();
+                    formData.append('title', title);
+                    formData.append('lat', this.pendingMarkerLocation.lat);
+                    formData.append('lng', this.pendingMarkerLocation.lng);
 
-                    localStorage.setItem('weesp_map_markers', JSON.stringify(markersData));
-                    localStorage.setItem('weesp_map_counter', JSON.stringify(this.markerCounter));
-                } catch (error) {
-                    if (error.name === 'QuotaExceededError') {
-                        this.showStatus('❌ Storage quota exceeded - please clear some markers');
+                    this.selectedPhotos.forEach((photo, index) => {
+                        formData.append(`photo${index + 1}`, photo);
+                    });
+
+                    const response = await fetch('api/markers.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.addMarkerToMap(result.marker);
+                        this.closeMarkerModal();
                     } else {
-                        this.showStatus('❌ Failed to save markers to local storage');
+                        errorDiv.textContent = result.message || 'Error adding marker';
                     }
-                    console.error('localStorage save error:', error);
-                }
-            }
-
-            loadFromLocalStorage() {
-                try {
-                    const storedMarkers = localStorage.getItem('weesp_map_markers');
-                    const storedCounter = localStorage.getItem('weesp_map_counter');
-
-                    if (storedMarkers) {
-                        const markersData = JSON.parse(storedMarkers);
-                        if (Array.isArray(markersData)) {
-                            markersData.forEach(markerData => {
-                                this.recreateMarkerFromStorage(markerData);
-                            });
-                            this.showStatus(`✅ Restored ${markersData.length} markers from storage`);
-                        }
-                    }
-
-                    if (storedCounter) {
-                        this.markerCounter = JSON.parse(storedCounter);
-                    }
-
-                    this.updateMarkerCount();
                 } catch (error) {
-                    this.showStatus('❌ Failed to load markers from storage');
-                    console.error('localStorage load error:', error);
-                    localStorage.removeItem('weesp_map_markers');
-                    localStorage.removeItem('weesp_map_counter');
+                    errorDiv.textContent = 'Connection error. Please try again.';
+                    console.error('Submit error:', error);
+                } finally {
+                    // Hide loading state
+                    submitBtn.disabled = false;
+                    submitText.style.display = 'inline';
+                    submitLoading.style.display = 'none';
                 }
             }
 
-            recreateMarkerFromStorage(markerData) {
-                const customIcon = L.divIcon({
-                    className: 'custom-marker',
-                    html: `<div style="
-                        background: #e74c3c;
-                        border: 3px solid white;
-                        border-radius: 50%;
-                        width: 20px;
-                        height: 20px;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-                    "></div>`,
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 10]
+            async loadMarkers() {
+                try {
+                    const response = await fetch('api/markers.php');
+                    const result = await response.json();
+
+                    if (result.success && result.markers) {
+                        result.markers.forEach(marker => {
+                            this.addMarkerToMap(marker);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading markers:', error);
+                }
+            }
+
+            addMarkerToMap(markerData) {
+                const marker = L.marker([markerData.lat, markerData.lng])
+                    .addTo(this.map);
+
+                const popupContent = this.createMarkerPopup(markerData);
+                marker.bindPopup(popupContent, {
+                    maxWidth: 350,
+                    className: 'marker-popup'
                 });
 
-                const marker = L.marker([markerData.lat, markerData.lng], { icon: customIcon }).addTo(this.map);
+                this.markers.push({ marker, data: markerData });
+            }
 
-                let photoGalleryHtml = '';
-                if (markerData.photos && markerData.photos.length > 0) {
-                    photoGalleryHtml = '<div class="photo-gallery">';
-                    markerData.photos.forEach((photo, index) => {
-                        photoGalleryHtml += `<img src="${photo.data}" alt="${photo.name}" onclick="app.showPhotoOverlay('${photo.data}', '${photo.name}', 'Photo from Marker ${markerData.id}')">`;
+            createMarkerPopup(markerData) {
+                const div = document.createElement('div');
+
+                const title = document.createElement('div');
+                title.className = 'marker-title';
+                title.textContent = markerData.title;
+                div.appendChild(title);
+
+                const photosGrid = document.createElement('div');
+                photosGrid.className = 'marker-photos';
+
+                markerData.photos.forEach((photo, index) => {
+                    const photoDiv = document.createElement('div');
+                    photoDiv.className = 'marker-photo';
+
+                    const img = document.createElement('img');
+                    img.src = photo;
+                    img.alt = `${markerData.title} - Photo ${index + 1}`;
+                    img.addEventListener('click', () => {
+                        this.showFullscreenPhoto(photo);
                     });
-                    photoGalleryHtml += '</div>';
-                } else {
-                    photoGalleryHtml = '<div class="popup-info"><em>No photos uploaded</em></div>';
-                }
 
-                const popupContent = `
-                    <div class="marker-popup">
-                        <div class="popup-header">📸 Photo Location ${markerData.id}</div>
-                        ${photoGalleryHtml}
-                        <div class="popup-info">
-                            <strong>Coordinates:</strong> ${markerData.lat.toFixed(5)}, ${markerData.lng.toFixed(5)}<br>
-                            <strong>Photos:</strong> ${markerData.photos ? markerData.photos.length : 0}/2<br>
-                            <small>Click photos to view full size</small>
-                        </div>
-                    </div>
-                `;
-
-                marker.bindPopup(popupContent);
-
-                this.markers.push({
-                    marker: marker,
-                    id: markerData.id,
-                    lat: markerData.lat,
-                    lng: markerData.lng,
-                    photos: markerData.photos || [],
-                    timestamp: markerData.timestamp
+                    photoDiv.appendChild(img);
+                    photosGrid.appendChild(photoDiv);
                 });
+
+                div.appendChild(photosGrid);
+                return div;
             }
 
-            clearLocalStorage() {
-                try {
-                    localStorage.removeItem('weesp_map_markers');
-                    localStorage.removeItem('weesp_map_counter');
-                } catch (error) {
-                    console.error('localStorage clear error:', error);
-                }
+            showFullscreenPhoto(src) {
+                const fullscreenPhoto = document.getElementById('fullscreenPhoto');
+                const fullscreenOverlay = document.getElementById('fullscreenOverlay');
+
+                fullscreenPhoto.src = src;
+                fullscreenOverlay.style.display = 'block';
             }
         }
-        
-        // Initialize the app when the page loads
-        let app;
+
+        // Initialize the application
         document.addEventListener('DOMContentLoaded', () => {
-            app = new WeespMapApp();
+            new BunkerMapApp();
         });
     </script>
 </body>
